@@ -51,9 +51,9 @@ namespace Test.Controllers
         }
 
         // GET: CategoryController/Edit/5
-        public ActionResult Edit(int id)
+        public ActionResult Edit(Guid id)
         {
-            return View();
+            return View(_service.Get(id));
         }
 
         // POST: CategoryController/Edit/5

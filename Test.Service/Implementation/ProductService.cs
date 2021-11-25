@@ -79,11 +79,24 @@ namespace Test.Service.Implementation
             }
         }
 
-        public IEnumerable<ProductDTO> Search(string Name = "", DateTime? date = null)
+        public IEnumerable<ProductDTO> Search(string Name = "")
         {
             try
             {
-                var cats = _productRepo.Search(Name,date);
+                var cats = _productRepo.Search(Name);
+                var dto = _mapper.Map<List<ProductDTO>>(cats);
+                return dto;
+            }
+            catch (Exception)
+            {
+
+                return null;
+            }
+        }  public IEnumerable<ProductDTO> Search( DateTime? date = null)
+        {
+            try
+            {
+                var cats = _productRepo.Search(date);
                 var dto = _mapper.Map<List<ProductDTO>>(cats);
                 return dto;
             }
@@ -103,7 +116,7 @@ namespace Test.Service.Implementation
 
 
             }
-            catch (Exception)
+            catch (Exception e)
             {
 
                 throw new Exception();

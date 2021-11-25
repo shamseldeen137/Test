@@ -14,6 +14,7 @@ namespace Test.Service.Interface
         public void Create(ProductDTO Product);
         public void Delete(Guid id);
         public void Update(Guid id, ProductDTO Product);
-        public IEnumerable<ProductDTO> Search(string Name = "", DateTime? date = null);
+        public IEnumerable<ProductDTO> Search(string Name = "");
+        public IEnumerable<ProductDTO> Search( DateTime? date = null);
     }
 }

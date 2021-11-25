@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using System;
@@ -10,20 +11,38 @@ using Test.Service.Interface;
 
 namespace Test.Controllers
 {
+
     public class ProductController : Controller
     {
         private readonly IProductService _service;
         private readonly IcategoryService _catservice;
         public ProductController(IProductService service,IcategoryService categoryService)
         {
+          
             _service = service;
             _catservice = categoryService;
         }
         // GET: ProductController
+        [Authorize(Roles= "Manager")]
+
         public ActionResult Index()
         {
+         
              var result=_service.Getall();
+           
             return View(result);
+        }
+          public ActionResult SearchName(String name)
+        {
+             var result=_service.Search(name);
+            ViewBag.searchname = name;
+            return View("Index",result);
+        }
+          public ActionResult SearchDate(DateTime date)
+        {
+             var result=_service.Search(date);
+            ViewBag.searchdate = date;
+            return View("Index", result);
         }
 
         // GET: ProductController/Details/5
@@ -57,18 +76,28 @@ namespace Test.Controllers
         }
 
         // GET: ProductController/Edit/5
-        public ActionResult Edit(int id)
+        public ActionResult Edit(Guid id)
         {
-            return View();
+            var cat = _service.Get(id);
+            ViewBag.Category = new SelectList(_catservice.Getall(), "Id", "Name",cat.CatId);
+            return View(cat);
         }
 
         // POST: ProductController/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit(int id, IFormCollection collection)
+        public ActionResult Edit(Guid id, ProductDTO collection)
         {
             try
             {
+                var cat = _service.Get(id);
+                if (_service.Get(id)==null)
+                {
+                    ViewBag.Category = new SelectList(_catservice.Getall(), "Id", "Name", cat.CatId);
+                    return View(cat);
+
+                }  
+                _service.Update(id,collection);
                 return RedirectToAction(nameof(Index));
             }
             catch
@@ -77,11 +106,13 @@ namespace Test.Controllers
             }
         }
 
+
         // GET: ProductController/Delete/5
         public ActionResult Delete(int id)
         {
             return View();
-        }
+        }  
+    
 
         // POST: ProductController/Delete/5
         [HttpPost]

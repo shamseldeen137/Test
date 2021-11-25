@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Test.Data.DTO;
 using Test.Data.Models;
 using Test.DTO.DTO;
 
@@ -18,6 +19,7 @@ namespace Test.Service
             {
                 CreateMap<Product, ProductDTO>().ReverseMap();
                 CreateMap<Category, CategoryDTO>().ReverseMap();
+                CreateMap<User, UserDTO>().ReverseMap();
             }
         
     }

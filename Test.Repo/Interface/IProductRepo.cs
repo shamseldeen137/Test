@@ -14,6 +14,7 @@ namespace Test.Repo.Interface
         public void Create(Product Product);
         public void Delete(Guid id);
         public void Update(Guid id, Product Product); 
-        public IEnumerable<Product> Search(string Name="",DateTime? date=null);
+        public IEnumerable<Product> Search(string Name="");
+        public IEnumerable<Product> Search(DateTime? date = null);
     }
 }

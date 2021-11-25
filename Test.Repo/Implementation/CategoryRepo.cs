@@ -49,7 +49,8 @@ namespace Test.Repo.Implementation
 
         public void Update(Guid id, Category Category)
         {
-            throw new NotImplementedException();
+            Categories.Update(Category);
+            SaveChanges();
         }
         void SaveChanges()
         {

@@ -3,13 +3,27 @@
 @{
     ViewData["Title"] = "Index";
 }
+<head>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.3/css/jquery.dataTables.css">
 
+    <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.11.3/js/jquery.dataTables.js"></script>
+
+</head>
 <h1>Index</h1>
 
 <p>
     <a asp-action="Create">Create New</a>
 </p>
-<table class="table">
+<div class="row">
+    <form asp-action="SearchName" class="col-md-6">
+        <input type="text" name="name" value="@ViewBag.searchname" class="form-control" /><input type="submit" value="Search" class="d-inline" />
+    </form>
+    <form asp-action="SearchDate" class="col-md-6">
+        <input type="date" value="@ViewBag.searchdate" name="date" class="form-control" /><input type="submit"value="Search" />
+    </form>
+</div>
+<table class="table" id="myTable">
     <thead>
         <tr>
             <th>
@@ -45,3 +59,10 @@
 }
     </tbody>
 </table>
+<script>
+    
+    $(document).ready(function () {
+        $.noConflict();
+    $('#myTable').DataTable();
+} );
+</script>

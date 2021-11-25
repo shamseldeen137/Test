@@ -42,9 +42,17 @@ namespace Test.Repo.Implementation
             return Products;
         }
 
-        public IEnumerable<Product> Search(string Name = "", DateTime? date = null)
+        public IEnumerable<Product> Search(string Name = "")
         {
-            var result = Products.Where(a => a.Name.ToLower().Contains(Name.Trim().ToLower()) || a.AddingDate.Value.Date == date.Value.Date).ToList();
+            var result = Products.Where(a => a.Name.ToLower().Contains(Name.Trim().ToLower()) ).ToList();
+
+
+
+                return result ;
+                } 
+        public IEnumerable<Product> Search( DateTime? date = null)
+        {
+            var result = Products.Where(a => a.AddingDate.Value.Date == date.Value.Date).ToList();
 
 
 
@@ -53,7 +61,8 @@ namespace Test.Repo.Implementation
 
         public void Update(Guid id, Product Product)
         {
-            throw new NotImplementedException();
+            Products.Update(Product);
+            SaveChanges();
         }
         void SaveChanges()
         {
