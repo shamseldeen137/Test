@@ -7,7 +7,7 @@ using Test.Data.Models;
 
 namespace Test.Repo.Interface
 {
-    interface IProductRepo
+ public   interface IProductRepo
     {
         public IEnumerable<Product> Getall();
         public Product Get(Guid id);

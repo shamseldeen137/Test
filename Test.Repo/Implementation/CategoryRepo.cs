@@ -9,7 +9,7 @@ using Test.Repo.Interface;
 
 namespace Test.Repo.Implementation
 {
-    class CategoryRepo : ICategoryRepo
+  public  class CategoryRepo : ICategoryRepo
     {
         private readonly DBContext _dBContext;
         private readonly DbSet<Category> Categories;

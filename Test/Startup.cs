@@ -10,6 +10,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Test.Data.Models;
+using Test.Repo.Implementation;
+using Test.Repo.Interface;
+using Test.Service;
+using Test.Service.Implementation;
+using Test.Service.Interface;
 
 namespace Test
 {
@@ -26,7 +31,10 @@ namespace Test
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddRazorPages();
+            services.AddControllersWithViews();
             services.AddEntityFrameworkSqlServer().AddDbContext<DBContext>(option => option.UseSqlServer(Configuration.GetConnectionString("Default")));
+           
+            services.AddAutoMapper(typeof(MapperProfile));
             ConfigureService(services);
             ConfigureRepos(services);
         }
@@ -56,14 +64,27 @@ namespace Test
             {
                 endpoints.MapRazorPages();
             });
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapControllerRoute(
+                    name: "default",
+                    pattern: "{controller=Product}/{action=Index}/{id?}");
+            });
+
         }
 
 
         void ConfigureService(IServiceCollection services) {
-           
+            services.AddScoped<IProductService, ProductService>();
+
+
+            services.AddScoped<IcategoryService, CategoryService>();
         }
-        void ConfigureRepos(IServiceCollection services) { 
-        
+        void ConfigureRepos(IServiceCollection services) {
+            services.AddScoped<IProductRepo, ProductRepo>();
+
+
+            services.AddScoped<ICategoryRepo, CategoryRepo>();
         }
     }
 }

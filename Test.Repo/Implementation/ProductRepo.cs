@@ -9,7 +9,7 @@ using Test.Repo.Interface;
 
 namespace Test.Repo.Implementation
 {
-    class ProductRepo : IProductRepo
+  public  class ProductRepo : IProductRepo
     {
         private readonly DBContext _dBContext;
         private readonly DbSet<Product> Products;
