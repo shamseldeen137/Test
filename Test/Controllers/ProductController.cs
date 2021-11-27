@@ -2,9 +2,12 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using System.Net.Http.Headers;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Test.DTO.DTO;
 using Test.Service.Interface;
@@ -23,33 +26,131 @@ namespace Test.Controllers
             _catservice = categoryService;
         }
         // GET: ProductController
-        [Authorize(Roles= "Manager")]
+        
 
-        public ActionResult Index()
+        public async Task<ActionResult> IndexAsync()
         {
-         
-             var result=_service.Getall();
-           
+            IEnumerable<ProductDTO> result;
+            using (var httpClient = new HttpClient())
+            {
+                string token = "";
+                token = HttpContext.Session.GetString("JWToken");
+
+                httpClient.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", $"Bearer {token}");
+                using (var response = await httpClient.GetAsync("https://localhost:5001/api/product/allproducts"))
+                {
+
+                    if (response.StatusCode != System.Net.HttpStatusCode.OK)
+                    {
+                        return View("Unauthorized");
+                    }
+                    string apiResponse = await response.Content.ReadAsStringAsync();
+
+
+
+
+                    result = JsonConvert.DeserializeObject<IEnumerable<ProductDTO>>(apiResponse);
+                }
+
+            }
             return View(result);
+
+         //   var result=_service.Getall();
+           
+           // return View(result);
         }
-          public ActionResult SearchName(String name)
+          public async Task<ActionResult> SearchNameAsync(String name)
         {
-             var result=_service.Search(name);
+
+            IEnumerable<ProductDTO> result;
+            using (var httpClient = new HttpClient())
+            {
+                string token = "";
+                token = HttpContext.Session.GetString("JWToken");
+
+                httpClient.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", $"Bearer {token}");
+                using (var response = await httpClient.GetAsync("https://localhost:5001/api/product/search/" +name))
+                {
+
+                    if (response.StatusCode != System.Net.HttpStatusCode.OK)
+                    {
+                        return View("Unauthorized");
+                    }
+                    string apiResponse = await response.Content.ReadAsStringAsync();
+
+
+
+
+                    result = JsonConvert.DeserializeObject<IEnumerable<ProductDTO>>(apiResponse);
+                }
+
+            }
+            //return View(result);
+           // var result=_service.Search(name);
             ViewBag.searchname = name;
             return View("Index",result);
         }
-          public ActionResult SearchDate(DateTime date)
+          public async Task<ActionResult> SearchDateAsync(DateTime date)
         {
-             var result=_service.Search(date);
+            IEnumerable<ProductDTO> result;
+            using (var httpClient = new HttpClient())
+            {
+                string token = "";
+                token = HttpContext.Session.GetString("JWToken");
+
+                httpClient.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", $"Bearer {token}");
+                using (var response = await httpClient.GetAsync("https://localhost:5001/api/product/SearchDate?date=" + date.ToString()))
+                {
+
+                    if (response.StatusCode != System.Net.HttpStatusCode.OK)
+                    {
+                        return View("Unauthorized");
+                    }
+                    string apiResponse = await response.Content.ReadAsStringAsync();
+
+
+
+
+                    result = JsonConvert.DeserializeObject<IEnumerable<ProductDTO>>(apiResponse);
+                }
+
+            }
+           
             ViewBag.searchdate = date;
             return View("Index", result);
         }
 
         // GET: ProductController/Details/5
-        public ActionResult Details(Guid id)
+        public async Task<ActionResult> DetailsAsync(Guid id)
         {
-            var prod = _service.Get(id);
-            return View(prod);
+
+
+            ProductDTO categories;
+            using (var httpClient = new HttpClient())
+            {
+                string token = "";
+                token = HttpContext.Session.GetString("JWToken");
+
+                httpClient.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", $"Bearer {token}");
+                using (var response = await httpClient.GetAsync("https://localhost:5001/api/product/get/" + id))
+                {
+
+                    if (response.StatusCode != System.Net.HttpStatusCode.OK)
+                    {
+                        return View("Unauthorized");
+                    }
+                    string apiResponse = await response.Content.ReadAsStringAsync();
+
+
+
+
+                    categories = JsonConvert.DeserializeObject<ProductDTO>(apiResponse);
+                }
+
+            }
+            return View(categories);
+
+        
         }
 
         // GET: ProductController/Create
@@ -62,71 +163,217 @@ namespace Test.Controllers
         // POST: ProductController/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create(ProductDTO dto)
+        public async Task<ActionResult> CreateAsync(ProductDTO dto)
         {
+
             try
             {
-                _service.Create(dto);
+                try
+                {
+                    dynamic categories;
+                    using (var httpClient = new HttpClient())
+                    {
+                        string token = "";
+                        token = HttpContext.Session.GetString("JWToken");
+
+                        httpClient.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", $"Bearer {token}");
+
+
+                        var myContent = JsonConvert.SerializeObject(dto);
+                        var buffer = System.Text.Encoding.UTF8.GetBytes(myContent);
+                        var byteContent = new ByteArrayContent(buffer);
+                        byteContent.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+
+                        using (var response = await httpClient.PostAsync("https://localhost:5001/api/product/create/", byteContent))
+                        {
+
+                            if (response.StatusCode != System.Net.HttpStatusCode.OK)
+                            {
+                                return View("Unauthorized");
+                            }
+                            string apiResponse = await response.Content.ReadAsStringAsync();
+
+
+
+
+                            categories = JsonConvert.DeserializeObject<IActionResult>(apiResponse);
+                        }
+
+                    }
+                }
+                catch (Exception)
+                {
+
+                    return View();
+                }
                 return RedirectToAction(nameof(Index));
             }
             catch
             {
                 return View();
             }
+
+
+
         }
 
         // GET: ProductController/Edit/5
-        public ActionResult Edit(Guid id)
+        public async Task<ActionResult> EditAsync(Guid id)
         {
-            var cat = _service.Get(id);
-            ViewBag.Category = new SelectList(_catservice.Getall(), "Id", "Name",cat.CatId);
-            return View(cat);
+            ProductDTO categories;
+            using (var httpClient = new HttpClient())
+            {
+                string token = "";
+                token = HttpContext.Session.GetString("JWToken");
+
+                httpClient.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", $"Bearer {token}");
+                using (var response = await httpClient.GetAsync("https://localhost:5001/api/product/get/" + id))
+                {
+
+                    if (response.StatusCode != System.Net.HttpStatusCode.OK)
+                    {
+                        return View("Unauthorized");
+                    }
+                    string apiResponse = await response.Content.ReadAsStringAsync();
+
+
+
+
+                    categories = JsonConvert.DeserializeObject<ProductDTO>(apiResponse);
+                }
+
+            }
+           
+            ViewBag.Category = new SelectList(_catservice.Getall(), "Id", "Name", categories.CatId);
+            return View(categories);
         }
 
         // POST: ProductController/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit(Guid id, ProductDTO collection)
+        public async Task<ActionResult> EditAsync(Guid id, ProductDTO collection)
         {
+
+
             try
             {
-                var cat = _service.Get(id);
-                if (_service.Get(id)==null)
+                try
                 {
-                    ViewBag.Category = new SelectList(_catservice.Getall(), "Id", "Name", cat.CatId);
-                    return View(cat);
+                    dynamic categories;
+                    using (var httpClient = new HttpClient())
+                    {
+                        string token = "";
+                        token = HttpContext.Session.GetString("JWToken");
 
-                }  
-                _service.Update(id,collection);
+                        httpClient.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", $"Bearer {token}");
+
+
+                        var myContent = JsonConvert.SerializeObject(collection);
+                        var buffer = System.Text.Encoding.UTF8.GetBytes(myContent);
+                        var byteContent = new ByteArrayContent(buffer);
+                        byteContent.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+
+                        using (var response = await httpClient.PostAsync("https://localhost:5001/api/category/Edit-product/" + id, byteContent))
+                        {
+
+                            if (response.StatusCode != System.Net.HttpStatusCode.OK)
+                            {
+                                return View("Unauthorized");
+                            }
+                            string apiResponse = await response.Content.ReadAsStringAsync();
+
+
+
+
+                            categories = JsonConvert.DeserializeObject<IActionResult>(apiResponse);
+                        }
+
+                    }
+                }
+                catch (Exception)
+                {
+
+                    throw;
+                }
                 return RedirectToAction(nameof(Index));
             }
             catch
             {
                 return View();
             }
+
+
+
+
+
         }
 
 
         // GET: ProductController/Delete/5
-        public ActionResult Delete(int id)
+        public async Task<ActionResult> DeleteAsync(Guid id)
         {
-            return View();
+            ProductDTO categories;
+            using (var httpClient = new HttpClient())
+            {
+                string token = "";
+                token = HttpContext.Session.GetString("JWToken");
+
+                httpClient.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", $"Bearer {token}");
+                using (var response = await httpClient.GetAsync("https://localhost:5001/api/product/get/" + id))
+                {
+
+                    if (response.StatusCode != System.Net.HttpStatusCode.OK)
+                    {
+                        return View("Unauthorized");
+                    }
+                    string apiResponse = await response.Content.ReadAsStringAsync();
+
+
+
+
+                    categories = JsonConvert.DeserializeObject<ProductDTO>(apiResponse);
+                }
+
+            }
+            return View(categories);
+           
         }  
     
 
         // POST: ProductController/Delete/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Delete(int id, IFormCollection collection)
+        public async Task<ActionResult> DeleteAsync(Guid id, IFormCollection collection)
         {
-            try
+
+            ProductDTO categories;
+            using (var httpClient = new HttpClient())
             {
-                return RedirectToAction(nameof(Index));
+                string token = "";
+                token = HttpContext.Session.GetString("JWToken");
+
+                httpClient.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", $"Bearer {token}");
+                using (var response = await httpClient.DeleteAsync("https://localhost:5001/api/product/delete/" + id))
+                {
+
+                    if (response.StatusCode != System.Net.HttpStatusCode.OK)
+                    {
+                        return View("Unauthorized");
+                    }
+                    string apiResponse = await response.Content.ReadAsStringAsync();
+
+
+
+
+                   
+                }
+
             }
-            catch
-            {
-                return View();
-            }
+            return RedirectToAction(nameof(IndexAsync));
+
+
+
+          
         }
     }
 }

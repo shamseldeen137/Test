@@ -3,11 +3,14 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
@@ -104,24 +107,42 @@ namespace Test.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> LoginAsync( LoginVM login)
         {
+            userdata result = new userdata();
 
-
-
-
-            string response = "";
-            var user = await AuthenticateUser(login);
-
-            if (user != null)
+            using (var httpClient = new HttpClient())
             {
-                var tokenString = GenerateJSONWebToken(user);
-                response = tokenString;
+                string token = "";
+
+                var myContent = JsonConvert.SerializeObject(login);
+                var buffer = System.Text.Encoding.UTF8.GetBytes(myContent);
+                var byteContent = new ByteArrayContent(buffer);
+                byteContent.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+                token = HttpContext.Session.GetString("JWToken");
+                httpClient.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
+
+                using (var response = await httpClient.PostAsync("https://localhost:5001/api/user/Login", byteContent))
+                {
+
+                    if (response.StatusCode != System.Net.HttpStatusCode.OK)
+                    {
+                        return View("Unauthorized");
+                    }
+                    string apiResponse = await response.Content.ReadAsStringAsync();
+
+
+
+
+                    result = JsonConvert.DeserializeObject<userdata>(apiResponse);
+                }
+
             }
-            else
-            {
-                return Ok(false);
-            }
-            HttpContext.Session.SetString("Token", response);
-            return Ok(new userdata { Token = response, Email = user.EmailAddress, Name = user.Name, UserId = user.UserId });
+
+           
+            
+
+          
+            HttpContext.Session.SetString("JWToken", result.Token);
+            return RedirectToAction("index","Product");
         }
 
 
@@ -133,68 +154,6 @@ namespace Test.Controllers
 
 
 
-        private string GenerateJSONWebToken(UserModel userInfo)
-        {
-            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]));
-            var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
-
-
-
-
-            var claims = new[] {
-        new Claim(JwtRegisteredClaimNames.Sub, userInfo.Username),
-        new Claim(JwtRegisteredClaimNames.Email, userInfo.EmailAddress),
-       new Claim("roles", userInfo.Role),
-
-        new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
-    };
-
-
-
-            var token = new JwtSecurityToken(_config["Jwt:Issuer"],
-                  _config["Jwt:Issuer"],
-                  claims,
-                  expires: DateTime.Now.AddMinutes(120),
-                  signingCredentials: credentials);
-
-            return new JwtSecurityTokenHandler().WriteToken(token);
-        }
-
-        private async Task<UserModel> AuthenticateUser(LoginVM login)
-        {
-            UserModel user = null;
-
-
-            var logeuser = await _userService.Login(new UserDTO   { Email = login.EmailAddress, Password = login.Password });
-            if (logeuser == null)
-            {
-                return null;
-
-            }
-            //Validate the User Credentials    
-            //Demo Purpose, I have Passed HardCoded User Information    
-
-            user = new UserModel
-            {
-                Username = logeuser.UserName,
-                EmailAddress = logeuser.Email
-                ,
-                Name = logeuser.UserName,
-                UserId = logeuser.UserId
-            };
-            if (logeuser.Type != null)
-            {
-
-
-                if (logeuser.Type == "0") user.Role = "Admin";
-                if (logeuser.Type == "1") user.Role = "Manager";
-                if (logeuser.Type == "2") user.Role = "Customer";
-
-
-            }
-            else user.Role = "Customer";
-            return user;
-        }
     }
 
 
